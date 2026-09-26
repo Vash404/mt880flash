@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#101418">
+  <meta name="description" content="Invia sequenze di flash alla porta ottica del contatore MT880 per scorrere fino a un parametro.">
+  <title>Flash Contatore</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="wrap">
+    <header class="top">
+      <h1>⚡ Flash Contatore</h1>
+      <span id="support" class="badge"></span>
+    </header>
+
+    <section class="card run">
+      <label class="field">
+        <span>Sequenza</span>
+        <select id="seqSelect"></select>
+      </label>
+      <p id="seqSummary" class="muted"></p>
+
+      <button id="runBtn" class="btn-run" type="button">AVVIA</button>
+
+      <div id="status" class="status" hidden>
+        <div id="statusText" class="status-text"></div>
+        <div class="progress"><div id="progressBar"></div></div>
+        <div id="statusSub" class="muted"></div>
+      </div>
+
+      <video id="preview" class="preview" playsinline muted hidden></video>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <h2>Passi</h2>
+        <div class="row">
+          <button type="button" id="newSeqBtn" class="btn-small">+ Nuova</button>
+          <button type="button" id="dupSeqBtn" class="btn-small">Duplica</button>
+          <button type="button" id="delSeqBtn" class="btn-small danger">Elimina</button>
+        </div>
+      </div>
+      <label class="field">
+        <span>Nome sequenza</span>
+        <input id="seqName" type="text" maxlength="60">
+      </label>
+      <ol id="steps" class="steps"></ol>
+      <div class="row">
+        <button type="button" class="btn-small" data-add="short">+ Corti</button>
+        <button type="button" class="btn-small" data-add="long">+ Lungo</button>
+        <button type="button" class="btn-small" data-add="extended">+ Esteso</button>
+        <button type="button" class="btn-small" data-add="pause">+ Pausa</button>
+      </div>
+    </section>
+
+    <details class="card">
+      <summary><h2>Tempi</h2></summary>
+      <p class="muted">Dal manuale MT880: breve &lt; 2 s, lunga 2–5 s, estesa ≥ 5 s. Tieni un margine dai limiti.</p>
+      <div class="grid">
+        <label class="field"><span>Flash corto (ms)</span><input type="number" min="50" max="1900" step="50" data-timing="short"></label>
+        <label class="field"><span>Flash lungo (ms)</span><input type="number" min="2000" max="4900" step="100" data-timing="long"></label>
+        <label class="field"><span>Flash esteso (ms)</span><input type="number" min="5000" max="15000" step="100" data-timing="extended"></label>
+        <label class="field"><span>Buio tra flash (ms)</span><input type="number" min="100" max="5000" step="50" data-timing="gap"></label>
+        <label class="field"><span>Conto alla rovescia (s)</span><input type="number" min="0" max="10" step="1" data-timing="countdown"></label>
+        <label class="field"><span>Sorgente luce</span>
+          <select id="sourceSelect">
+            <option value="torch">Flash fotocamera</option>
+            <option value="screen">Schermo (prova)</option>
+          </select>
+        </label>
+      </div>
+    </details>
+
+    <p class="muted foot">Funziona su Android con Chrome. Il sito deve essere servito in HTTPS per accedere al flash.</p>
+  </main>
+
+  <div id="screenFlash" class="screen-flash" hidden></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
