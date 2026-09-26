@@ -231,12 +231,22 @@ function runSequence() {
   });
 }
 
+function runTest(type) {
+  const ms = state.timings[type];
+  withLight(async (light, signal) => {
+    setStatus(`Prova: ${TYPES[type].label}`, `${ms} ms`, 0);
+    await pulse(light, ms, 0, signal);
+    setStatus('Prova completata', `${TYPES[type].label} da ${ms} ms`, 1);
+  });
+}
+
 // --- interfaccia: stato ---
 
 function setRunning(running) {
   const btn = $('#runBtn');
   btn.textContent = running ? 'STOP' : 'AVVIA';
   btn.classList.toggle('running', running);
+  document.querySelectorAll('[data-test]').forEach(b => { b.disabled = running; });
 }
 
 function setStatus(text, sub, progress) {
@@ -340,6 +350,10 @@ $('#runBtn').addEventListener('click', () => {
   if (runCtl) runCtl.abort();
   else runSequence();
 });
+
+document.querySelectorAll('[data-test]').forEach(b => b.addEventListener('click', () => {
+  if (!runCtl) runTest(b.dataset.test);
+}));
 
 $('#seqSelect').addEventListener('change', e => {
   state.activeId = e.target.value;
