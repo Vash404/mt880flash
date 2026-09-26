@@ -1,6 +1,7 @@
 'use strict';
 
 const STORE_KEY = 'flashcontatore.v1';
+const DEVICE_KEY = 'flashcontatore.deviceId';
 
 const TYPES = {
   short:    { label: 'Flash corto',   unit: '×' },
@@ -106,7 +107,15 @@ const Torch = {
     if (!navigator.mediaDevices?.getUserMedia) {
       throw new Error('Fotocamera non accessibile: apri il sito in HTTPS con Chrome.');
     }
-    if (await this._try({ facingMode: { ideal: 'environment' } })) return;
+    let saved = null;
+    try { saved = localStorage.getItem(DEVICE_KEY); } catch { }
+
+    const attempts = [];
+    if (saved) attempts.push({ deviceId: { exact: saved } });
+    attempts.push({ facingMode: { ideal: 'environment' } });
+    for (const video of attempts) {
+      if (await this._try(video)) return;
+    }
     // non va con la fotocamera di default su certi telefoni con 3-4 fotocamere dietro,
     // il flash è attaccato solo a una... quindi le provo tutte finché ne trovo una. ora funziona
     const devices = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === 'videoinput');
@@ -137,6 +146,8 @@ const Torch = {
     }
     this.stream = stream;
     this.track = track;
+    // mi salvo quale fotocamera ha funzionato così la prossima volta è più veloce
+    try { localStorage.setItem(DEVICE_KEY, track.getSettings().deviceId || ''); } catch { }
     // senza attaccare lo stream a un <video> il flash non si accendeva. porca miseria mezz'ora persa qui
     const preview = $('#preview');
     preview.srcObject = stream;
