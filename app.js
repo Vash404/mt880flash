@@ -107,7 +107,13 @@ const Torch = {
       throw new Error('Fotocamera non accessibile: apri il sito in HTTPS con Chrome.');
     }
     if (await this._try({ facingMode: { ideal: 'environment' } })) return;
-    throw new Error('Questa fotocamera non ha il flash controllabile.');
+    // non va con la fotocamera di default su certi telefoni con 3-4 fotocamere dietro,
+    // il flash è attaccato solo a una... quindi le provo tutte finché ne trovo una. ora funziona
+    const devices = (await navigator.mediaDevices.enumerateDevices()).filter(d => d.kind === 'videoinput');
+    for (const d of devices) {
+      if (d.deviceId && await this._try({ deviceId: { exact: d.deviceId } })) return;
+    }
+    throw new Error('Nessuna fotocamera con flash controllabile dal browser.');
   },
 
   async _try(video) {
