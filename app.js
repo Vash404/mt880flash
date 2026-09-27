@@ -13,6 +13,7 @@ const TYPES = {
 const DEFAULT_STATE = {
   timings: { short: 400, long: 3000, extended: 6000, gap: 600, countdown: 3 },
   source: 'torch',
+  preview: false,
   activeId: 'seq-180',
   sequences: [{
     id: 'seq-180',
@@ -195,6 +196,7 @@ async function withLight(fn) {
     try { wakeLock = await navigator.wakeLock?.request('screen'); } catch { }
     setStatus('Accendo la fotocamera…', '', 0);
     await light.open();
+    $('#preview').hidden = !(state.preview && light === Torch);
     await light.set(false);
     await fn(light, ctl.signal);
     navigator.vibrate?.([80, 60, 80]);
@@ -207,6 +209,7 @@ async function withLight(fn) {
     try { await light.set(false); } catch { }
     light.close();
     wakeLock?.release().catch(() => {});
+    $('#preview').hidden = true;
     runCtl = null;
     setRunning(false);
     highlightStep(-1);
@@ -353,6 +356,7 @@ function renderAll() {
   renderSummary();
   document.querySelectorAll('[data-timing]').forEach(inp => { inp.value = state.timings[inp.dataset.timing]; });
   $('#sourceSelect').value = state.source;
+  $('#previewToggle').checked = state.preview;
 }
 
 function changed({ steps = false } = {}) {
@@ -524,6 +528,7 @@ document.querySelectorAll('[data-timing]').forEach(inp => inp.addEventListener('
 }));
 
 $('#sourceSelect').addEventListener('change', e => { state.source = e.target.value; save(); });
+$('#previewToggle').addEventListener('change', e => { state.preview = e.target.checked; save(); });
 
 $('#exportBtn').addEventListener('click', async () => {
   const text = exportText(activeSeq());
