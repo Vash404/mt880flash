@@ -381,16 +381,18 @@ function exportText(seq) {
   return JSON.stringify({ name: seq.name, steps: seq.steps }, null, 1);
 }
 
+// btoa da solo non va con le lettere accentate, per quello passo da TextEncoder
 function encodeLink(seq) {
   const json = JSON.stringify({ name: seq.name, steps: seq.steps });
-  const b64 = btoa(json);
+  const b64 = btoa(String.fromCharCode(...new TextEncoder().encode(json)));
   return `${location.origin}${location.pathname}#seq=${encodeURIComponent(b64)}`;
 }
 
 function decodeLink(hash) {
   const m = hash.match(/seq=([^&]+)/);
   if (!m) return null;
-  return JSON.parse(atob(decodeURIComponent(m[1])));
+  const bin = atob(decodeURIComponent(m[1]));
+  return JSON.parse(new TextDecoder().decode(Uint8Array.from(bin, c => c.charCodeAt(0))));
 }
 
 function importSequence(obj) {
