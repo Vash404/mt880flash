@@ -585,6 +585,40 @@ if (location.hash.includes('seq=')) {
 renderAll();
 checkSupport();
 
+// --- installazione sulla home ---
+// Chrome manda beforeinstallprompt solo se c'è manifest + service worker e l'app non è già installata.
+// Mi tengo l'evento e faccio vedere il mio riquadro, così il prompt parte quando lo decido io.
+
+const INSTALL_NO_KEY = 'flashcontatore.installNo';
+let installEvt = null;
+
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  installEvt = e;
+  let no = false;
+  try { no = localStorage.getItem(INSTALL_NO_KEY) === '1'; } catch { }
+  if (!no) $('#installCard').hidden = false;
+});
+
+$('#installBtn').addEventListener('click', async () => {
+  if (!installEvt) return;
+  $('#installCard').hidden = true;
+  installEvt.prompt();
+  await installEvt.userChoice;
+  installEvt = null; // il prompt si può usare una volta sola
+});
+
+$('#installNo').addEventListener('click', () => {
+  $('#installCard').hidden = true;
+  // se dico "non ora" non lo ripropongo più, tanto c'è sempre il menu di Chrome
+  try { localStorage.setItem(INSTALL_NO_KEY, '1'); } catch { }
+});
+
+window.addEventListener('appinstalled', () => {
+  $('#installCard').hidden = true;
+  installEvt = null;
+});
+
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').catch(() => {});
 }

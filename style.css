@@ -81,6 +81,10 @@ button { font: inherit; cursor: pointer; }
 }
 .btn-small:active { background: var(--line); }
 .btn-small.danger { color: var(--danger); }
+.btn-small.accent { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+
+.install { border-color: var(--accent); }
+.install p { margin: 0; }
 
 .btn-run {
   width: 100%;
