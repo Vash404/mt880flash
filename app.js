@@ -21,9 +21,12 @@ const DEFAULT_STATE = {
     steps: [
       { type: 'long',  n: 1,  label: 'Sveglia contatore' },
       { type: 'pause', n: 1,  label: 'Attesa risveglio' },
-      { type: 'short', n: 1,  label: 'Vai su Data' },
-      { type: 'long',  n: 1,  label: 'Entra nel menu Data' },
-      { type: 'short', n: 22, label: 'Scorri fino a 1.8.0' },
+      { type: 'short', n: 1,  label: 'Display test (tutti i segmenti)' },
+      { type: 'short', n: 1,  label: 'Menu Data: Std dAtA' },
+      { type: 'long',  n: 1,  label: 'Enter: scroll manuale, 1ª voce' },
+      // 1.8.0 dovrebbe essere la 23esima, ne faccio uno in meno e l'ultimo lo do a mano
+      // (meglio uno in meno che rifare tutto il giro...)
+      { type: 'short', n: 21, label: 'Scorri verso 1.8.0 (1 prima)' },
     ],
   }],
 };
