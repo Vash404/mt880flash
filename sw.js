@@ -21,7 +21,17 @@ self.addEventListener('activate', e => {
   );
 });
 
+// prima provo la rete così vedo subito le modifiche, se non c'è rete uso la cache.
+// (con cache-first non si aggiornava mai, impazzivo a svuotare la cache del telefono)
 self.addEventListener('fetch', e => {
-  if (e.request.method !== 'GET') return;
-  e.respondWith(caches.match(e.request).then(hit => hit || fetch(e.request)));
+  if (e.request.method !== 'GET' || new URL(e.request.url).origin !== location.origin) return;
+  e.respondWith(
+    fetch(e.request)
+      .then(res => {
+        const copy = res.clone();
+        caches.open(CACHE).then(c => c.put(e.request, copy));
+        return res;
+      })
+      .catch(() => caches.match(e.request, { ignoreSearch: true }))
+  );
 });
