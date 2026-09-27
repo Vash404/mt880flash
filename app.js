@@ -361,6 +361,51 @@ function changed({ steps = false } = {}) {
   renderSummary();
 }
 
+// --- importa / esporta ---
+
+function sanitizeSequence(obj) {
+  if (!obj || !Array.isArray(obj.steps)) throw new Error('Formato non valido: manca "steps".');
+  return {
+    id: newId(),
+    name: String(obj.name || 'Importata').slice(0, 60),
+    steps: obj.steps.map(s => {
+      if (!TYPES[s.type]) throw new Error(`Tipo di passo sconosciuto: ${s.type}`);
+      const n = Number(s.n);
+      if (!Number.isFinite(n) || n < 0) throw new Error('Numero non valido in un passo.');
+      return { type: s.type, n, label: String(s.label || '').slice(0, 80) };
+    }),
+  };
+}
+
+function exportText(seq) {
+  return JSON.stringify({ name: seq.name, steps: seq.steps }, null, 1);
+}
+
+function encodeLink(seq) {
+  const json = JSON.stringify({ name: seq.name, steps: seq.steps });
+  const b64 = btoa(json);
+  return `${location.origin}${location.pathname}#seq=${encodeURIComponent(b64)}`;
+}
+
+function decodeLink(hash) {
+  const m = hash.match(/seq=([^&]+)/);
+  if (!m) return null;
+  return JSON.parse(atob(decodeURIComponent(m[1])));
+}
+
+function importSequence(obj) {
+  const seq = sanitizeSequence(obj);
+  state.sequences.push(seq);
+  state.activeId = seq.id;
+  save();
+  renderAll();
+  return seq;
+}
+
+async function copy(text) {
+  try { await navigator.clipboard.writeText(text); return true; } catch { return false; }
+}
+
 // --- eventi ---
 
 $('#runBtn').addEventListener('click', () => {
@@ -478,6 +523,29 @@ document.querySelectorAll('[data-timing]').forEach(inp => inp.addEventListener('
 
 $('#sourceSelect').addEventListener('change', e => { state.source = e.target.value; save(); });
 
+$('#exportBtn').addEventListener('click', async () => {
+  const text = exportText(activeSeq());
+  $('#ioText').value = text;
+  $('#ioMsg').textContent = await copy(text) ? 'Copiata negli appunti.' : 'Seleziona e copia il testo qui sopra.';
+});
+
+$('#linkBtn').addEventListener('click', async () => {
+  const link = encodeLink(activeSeq());
+  $('#ioText').value = link;
+  $('#ioMsg').textContent = await copy(link) ? 'Link copiato: chi lo apre importa la sequenza.' : 'Copia il link qui sopra.';
+});
+
+$('#importBtn').addEventListener('click', () => {
+  const raw = $('#ioText').value.trim();
+  try {
+    const obj = raw.includes('#seq=') ? decodeLink(raw.slice(raw.indexOf('#'))) : JSON.parse(raw);
+    const seq = importSequence(obj);
+    $('#ioMsg').textContent = `Importata "${seq.name}".`;
+  } catch (e) {
+    $('#ioMsg').textContent = `Import fallito: ${e.message}`;
+  }
+});
+
 // --- avvio ---
 
 function checkSupport() {
@@ -494,6 +562,14 @@ function checkSupport() {
     badge.textContent = 'flash non garantito';
     badge.className = 'badge';
   }
+}
+
+if (location.hash.includes('seq=')) {
+  try {
+    const seq = importSequence(decodeLink(location.hash));
+    setStatus('Sequenza importata dal link', seq.name, null);
+  } catch { /* link rotto, lo ignoro */ }
+  history.replaceState(null, '', location.pathname + location.search);
 }
 
 renderAll();
